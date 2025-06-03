@@ -1,0 +1,91 @@
+{
+  "$schema": "schema.json",
+  "timeout_ms": 10000,
+  "theme": {
+    "background": "#2E3440",
+    "accent": "#88C0D0",
+    "font": "Inter, SanFrancisco, sans-serif",
+    "custom_properties": {
+      "panel_background_light": "rgba(255, 255, 255, 0.7)",
+      "panel_background_dark": "rgba(30, 30, 35, 0.5)",
+      "text_light": "#1a1a1a",
+      "text_dark": "#ECEFF4",
+      "secondary_text_light": "#4C566A",
+      "secondary_text_dark": "#D8DEE9",
+      "hover_bg_light": "rgba(143, 188, 187, 0.15)",
+      "hover_bg_dark": "rgba(136, 192, 208, 0.15)",
+      "selected_text_light": "#FFFFFF",
+      "selected_text_dark": "#2E3440"
+    }
+  },
+  "entries": [
+    {
+      "id": "linux_default",
+      "title": "LionOS GNU/Linux (Default)",
+      "kernel": "/boot/vmlinuz-linux",
+      "initrd": "/boot/initramfs-linux.img",
+      "cmdline": "root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx rw quiet splash loglevel=3 rd.udev.log_priority=3 vt.global_cursor_default=0",
+      "order": 1,
+      "secure": false,
+      "icon": "os_linux",
+      "volume_id": "auto_detect_root"
+    },
+    {
+      "id": "windows_main",
+      "title": "Windows 11 Pro",
+      "kernel": "/EFI/Microsoft/Boot/bootmgfw.efi",
+      "type": "uefi_chainload",
+      "cmdline": "",
+      "order": 2,
+      "secure": true,
+      "icon": "os_windows",
+      "volume_id": "auto_detect_esp"
+    },
+    {
+      "id": "macos_sonoma",
+      "title": "macOS Sonoma (via OpenCore)",
+      "kernel": "/EFI/OC/OpenCore.efi",
+      "type": "uefi_chainload",
+      "cmdline": "",
+      "order": 3,
+      "secure": false,
+      "icon": "os_macos",
+      "volume_id": "auto_detect_esp"
+    },
+    {
+      "id": "memtest",
+      "title": "Memory Diagnostic Tool",
+      "kernel": "/boot/memtest86plus.efi",
+      "type": "uefi_application",
+      "cmdline": "",
+      "order": 98,
+      "secure": false,
+      "icon": "tool_memtest"
+    },
+    {
+      "id": "recovery_shell",
+      "title": "LBL Recovery Shell",
+      "kernel": "internal://lbl_shell",
+      "type": "internal_tool",
+      "cmdline": "",
+      "order": 99,
+      "secure": false,
+      "icon": "tool_terminal"
+    }
+  ],
+  "plugins": [
+    "lblfs_fat32.lblfs",
+    "lblfs_ext4.lblfs",
+    "lblfs_ntfs.lblfs",
+    "lblfs_btrfs.lblfs"
+  ],
+  "advanced": {
+    "debug_shell": true,
+    "log_level": "info",
+    "enable_network_boot": false,
+    "default_boot_entry_id": "linux_default",
+    "resolution": "auto",
+    "show_countdown": true,
+    "progress_bar_style": "modern"
+  }
+}

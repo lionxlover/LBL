@@ -1,0 +1,90 @@
+# LBL Project Directory Structure
+
+LBL/
+├── .gitignore
+├── Cargo.toml (Workspace Configuration)
+├── Makefile (Master Build Orchestrator)
+├── config/  (User-facing configurations and schemas)
+│   ├── default.json (Default/Example LBL configuration)
+│   └── schema.json (LBL JSON Schema v1.1, as per specification)
+├── core/  (Core Engine - Rust Crate)
+│   ├── Cargo.toml (Rust Crate Manifest for Core)
+│   └── src/
+│       ├── lib.rs (Rust library root, declares modules)
+│       ├── main.rs (Core engine entry point, called by Stage 1)
+│       ├── config.rs (Pub mod for config logic)
+│       ├── fs.rs (Pub mod for filesystem logic)
+│       ├── hal.rs (Pub mod for Hardware Abstraction Layer)
+│       ├── loader.rs (Pub mod for Boot Executor logic)
+│       ├── logger.rs (Centralized logging facility)
+│       ├── plugins.rs (Pub mod for plugin system)
+│       ├── security.rs (Pub mod for security features)
+│       ├── config/ (Configuration parsing and management module)
+│       │   ├── mod.rs
+│       │   ├── parser.rs (JSON parser and schema validator)
+│       │   └── schema_types.rs (Rust structs derived from JSON schema)
+│       ├── fs/ (Filesystem module: manager and implementations)
+│       │   ├── mod.rs
+│       │   ├── btrfs.rs (BTRFS driver stub)
+│       │   ├── ext4.rs (EXT4 driver stub)
+│       │   ├── fat32.rs (FAT32 driver stub)
+│       │   ├── interface.rs (Filesystem trait/interface)
+│       │   ├── manager.rs (Filesystem plugin manager)
+│       │   └── ntfs.rs (NTFS driver stub)
+│       ├── hal/ (Hardware Abstraction Layer module)
+│       │   ├── mod.rs
+│       │   ├── async_probe.rs (Async device probing logic)
+│       │   └── device_manager.rs (Manages discovered devices)
+│       ├── loader/ (Boot Executor module)
+│       │   ├── mod.rs
+│       │   ├── arch_adapter.rs (Architecture-specific adaptors: x86, ARM, RISC-V)
+│       │   └── kernel_formats.rs (Kernel image loaders: ELF, PE, IMG)
+│       ├── plugins/ (Plugin system module)
+│       │   ├── mod.rs
+│       │   └── manager.rs (General plugin manager for .lblfs etc.)
+│       └── security/ (Security Manager module)
+│           ├── mod.rs
+│           ├── signature.rs (Signature verification logic)
+│           └── tpm.rs (TPM 2.0 integration stub)
+├── docs/  (Project documentation)
+│   ├── ARCHITECTURE.md (Detailed architecture of LBL)
+│   ├── BUILD_INSTRUCTIONS.md (How to build LBL)
+│   ├── LBL_SPECIFICATION.md (The original specification document provided)
+│   ├── LICENSE_APACHE2.txt (Apache 2.0 License text)
+│   ├── LICENSE_MIT.txt (MIT License text)
+│   ├── PLUGIN_API.md (Specification for LBL plugin developers)
+│   └── README.md (Main project README)
+├── gui/  (GUI Layer - Rust Crate, potentially using NanoVG)
+│   ├── Cargo.toml (Rust Crate Manifest for GUI)
+│   └── src/
+│       ├── lib.rs (Rust library root for GUI components)
+│       ├── animations.rs (Animation logic and effects)
+│       ├── input.rs (Input handling: keyboard, mouse, touch, gamepad)
+│       ├── renderer.rs (Rendering pipeline: NanoVG wrapper or custom GPU)
+│       ├── theme.rs (Theme engine: JSON-driven styling, custom fonts)
+│       ├── ui.rs (Main UI logic, window management, layout)
+│       └── widgets/ (Reusable UI components)
+│           ├── mod.rs
+│           ├── button.rs
+│           ├── list_view.rs
+│           └── progress_bar.rs
+├── plugins_external/ (Directory for distributable LBL plugins, e.g., .lblfs)
+│   └── README.md (Information on installing external plugins)
+├── stage1/  (BIOS MBR and UEFI Stage 1 loaders)
+│   ├── Makefile (Makefile for building Stage 1 components)
+│   ├── bios/ (BIOS-specific Stage 1 components)
+│   │   ├── boot_32.asm (32-bit protected mode setup, loads Core Engine)
+│   │   ├── linker_bios.ld (Linker script for BIOS bootloader parts)
+│   │   └── mbr.asm (512-byte Master Boot Record stub)
+│   ├── common/ (Code potentially shared between BIOS and UEFI Stage 1)
+│   │   └── stage1_loader_utils.c (Minimal functions to find and load Core Engine)
+│   │   └── stage1_loader_utils.h
+│   └── uefi/ (UEFI-specific Stage 1 components)
+│       ├── LblUefi.c (Main UEFI Application C code, loads Core Engine)
+│       └── LblUefi.h (Header for LblUefi.c)
+└── tools/  (Build utilities, helper scripts)
+    ├── build_core_gui.sh (Script to build Rust Core and GUI crates)
+    ├── build_stage1.sh (Script to build Stage 1 components)
+    ├── build.sh (Master build script, orchestrates all parts)
+    ├── cross_compile_setup.sh (Script to aid in setting up cross-compilation)
+    └── mkimage.sh (Utility to create bootable disk images with LBL)

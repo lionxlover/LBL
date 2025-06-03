@@ -1,0 +1,57 @@
+# Rust
+/target/
+Cargo.lock # Typically committed for applications, but can be ignored if workspace handles it. For LBL, we might commit workspace lock. Let's reconsider if needed.
+
+# Stage1 build artifacts
+*.o
+*.bin
+*.elf
+*.efi
+*.map
+*.lst
+*.img
+
+# IDEs and editors
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.DS_Store
+Thumbs.db
+*.swp
+*~
+*.bak
+
+# Logs and temporary files
+*.log
+temp/
+tmp/
+
+# OS-specific
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Tools
+bin/
+dist/
+build/
+
+# External plugins (if built locally and not part of the source tree)
+plugins_external/*.lblfs
+plugins_external/*.so
+plugins_external/*.dll
+plugins_external/*.dylib
+
+# Specific to this project structure (if build outputs go here)
+Lionbootloader/stage1/*.o
+Lionbootloader/stage1/*.bin
+Lionbootloader/stage1/*.efi
+Lionbootloader/stage1/bios/*.o
+Lionbootloader/stage1/bios/*.bin
+Lionbootloader/stage1/uefi/*.o
+Lionbootloader/stage1/uefi/*.efi

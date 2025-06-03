@@ -1,0 +1,106 @@
+[package]
+name = "lionbootloader_gui"
+version = "0.1.0"
+authors = ["Lionbootloader Development Team <dev@lionbootloader.org>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "GUI layer for Lionbootloader."
+# repository = "https://github.com/your-org/lionbootloader/tree/main/gui"
+
+# This crate will be a library, providing UI functions to the core engine.
+[lib]
+name = "lionbootloader_gui_lib"
+crate-type = ["rlib"] # Rust library, to be linked by the core engine.
+# path = "src/lib.rs" # Default
+
+[dependencies]
+# Core no_std utilities (if needed independently of `lionbootloader_core`)
+# `alloc` crate for dynamic memory allocation.
+alloc = { version = "0.0.0", package = "alloc_crate", optional = true } # Same trick as in core
+spin = "0.9.8" # For Mutexes if sharing state within GUI
+
+# Logging (GUI will also want to log)
+log = "0.4.20"
+
+# Serde for theme parsing if themes are complex JSON objects within the main config
+# or separate theme files.
+serde = { version = "1.0.195", default-features = false, features = ["derive", "alloc"], optional = true }
+serde_json = { version = "1.0.111", default-features = false, features = ["alloc"], optional = true } # If parsing theme JSON
+
+# --- Graphics Rendering ---
+# Option 1: NanoVG (Rust bindings)
+# nanovg-rs = { version = "0.5.0", default-features = false, features = ["bundled_static"], optional = true }
+#   - `bundled_static` attempts to build NanoVG C code and link it. This can be complex for cross-compilation.
+#   - Requires a backend (e.g., OpenGL, custom framebuffer). For a bootloader, a custom
+#     framebuffer backend for NanoVG would be needed, or a software renderer.
+#   - Check `no_std` compatibility of bindings. Native NanoVG C lib is `no_std` friendly.
+
+# Option 2: A more lightweight 2D graphics library suitable for no_std
+# embedded-graphics = { version = "0.8.0", features = ["alloc"], optional = true }
+#   - This is a popular choice for embedded `no_std` graphics.
+#   - It's a drawing toolkit; you draw primitives. Needs a display driver.
+#   - Might be lower-level than NanoVG but very flexible.
+
+# Option 3: Custom GPU rendering pipeline (very advanced)
+# This would involve direct interaction with GPU hardware registers or a minimal kernel GPU driver.
+
+# Option 4: Software rasterizer / framebuffer drawing
+# For simple UIs, drawing directly to a framebuffer (pixels, lines, text via font bitmaps) is feasible.
+# fontdue = { version = "0.7.3", default-features = false, features = ["alloc"], optional = true } # For font rasterization
+# image = { version = "0.24", default-features = false, features = ["png", "jpeg"], optional = true } # For image decoding if needed
+
+# For the HTML/CSS design you provided, NanoVG or a good software rasterizer would be needed
+# to achieve the "glassmorphism" and complex text rendering easily.
+# Let's tentatively include `fontdue` for text and assume a basic framebuffer approach for now,
+# with NanoVG as a potential future enhancement.
+fontdue = { version = "0.8.0", default-features = false, features = ["alloc"], optional = true }
+
+# For image loading (icons, backgrounds) - ensure `no_std` compatibility or use simple formats.
+# `tinybmp` or `qoi` for simple, `no_std` image formats if `image` crate is too heavy.
+# For icons, an embedded icon font (using `fontdue`) is also a good option.
+
+# --- Math libraries for 2D graphics (vectors, matrices, colors) ---
+# glam = { version = "0.25.0", default-features = false, optional = true } # For vector/matrix math
+# or
+# euclid = { version = "0.22.7", default-features = false, optional = true }
+
+# --- Input Handling ---
+# No specific crates listed, as input events (keyboard, mouse) would typically come
+# from HAL services provided by `lionbootloader_core`. This GUI crate would consume those events.
+
+# --- LBL Core Crate (as a dependency) ---
+# The GUI needs access to configuration, HAL (for framebuffer info, input events), etc.
+# This creates a dependency on `lionbootloader_core`. Care must be taken to avoid circular dependencies
+# if `core` also calls `gui`. A common pattern is `core` calls `gui::init()`, `gui::run_loop()`,
+# and `gui` calls back into `core` for specific actions or data via well-defined interfaces/callbacks.
+# Or, core passes all necessary context (config, HAL handles) to the GUI during init.
+lionbootloader_core_lib = { path = "../core", features = ["with_alloc"] } # Assuming GUI uses alloc from core
+# Note: the `_lib` suffix depends on what `name` you gave in `core/Cargo.toml`'s `[lib]` section.
+
+
+[features]
+default = [
+    "alloc", # Enable alloc by default for GUI
+    "font_rendering", # Enable font rendering by default
+    # "nanovg_renderer", # Example: feature to switch to NanoVG
+]
+
+# Enable dynamic memory allocation if not already enabled by core dependency
+# "alloc" feature here would enable the `extern crate alloc;` at the top of this crate's lib.rs
+# Needs to be harmonized with how `lionbootloader_core_lib` enables alloc.
+# If core already provides alloc, GUI might not need to declare it again.
+
+font_rendering = ["dep:fontdue"]
+# image_support = ["dep:image"] # If using the image crate
+
+# nanovg_renderer = ["dep:nanovg-rs"]
+# embedded_graphics_renderer = ["dep:embedded-graphics"]
+
+
+# Build configuration for no_std (similar to core)
+# Profiles are inherited from workspace Cargo.toml
+# [profile.release]
+# panic = "abort"
+# lto = true
+# codegen-units = 1
+# opt-level = "z"

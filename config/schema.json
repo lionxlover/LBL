@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lionbootloader Configuration Schema",
+  "description": "Schema for LBL v1.1 configuration files.",
+  "type": "object",
+  "properties": {
+    "timeout_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 5000,
+      "description": "Timeout in milliseconds before the default entry boots. 0 means no timeout."
+    },
+    "theme": {
+      "type": "object",
+      "description": "GUI theme settings.",
+      "properties": {
+        "background": {
+          "type": "string",
+          "pattern": "^#([A-Fa-f0-9]{6})$",
+          "description": "Main background color (hex)."
+        },
+        "accent": {
+          "type": "string",
+          "pattern": "^#([A-Fa-f0-9]{6})$",
+          "description": "Primary accent color (hex)."
+        },
+        "font": {
+          "type": "string",
+          "description": "Comma-separated list of preferred font family names."
+        },
+        "custom_properties": {
+          "type": "object",
+          "description": "Additional key-value pairs for advanced theme customization.",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "required": ["background", "accent"]
+    },
+    "entries": {
+      "type": "array",
+      "description": "List of bootable entries.",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "kernel"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the boot entry."
+          },
+          "title": {
+            "type": "string",
+            "description": "Display title for the boot entry in the menu."
+          },
+          "kernel": {
+            "type": "string",
+            "description": "Path to the kernel image or chainload target (e.g., /boot/vmlinuz, /EFI/Boot/bootx64.efi, internal://tool_name)."
+          },
+          "initrd": {
+            "type": "string",
+            "description": "Path to the initial RAM disk image (optional)."
+          },
+          "cmdline": {
+            "type": "string",
+            "description": "Kernel command line arguments (optional)."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Sort order for the entry in the menu (lower numbers appear first)."
+          },
+          "secure": {
+            "type": "boolean",
+            "default": false,
+            "description": "Indicates if secure boot verification (signature check) is required for this entry."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Identifier for an icon to display next to the entry (e.g., 'os_linux', 'os_windows')."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["kernel_direct", "uefi_chainload", "uefi_application", "internal_tool"],
+            "default": "kernel_direct",
+            "description": "Type of boot entry determining how 'kernel' is handled."
+          },
+          "volume_id": {
+            "type": "string",
+            "description": "Identifier for the volume/partition where kernel/initrd reside (e.g., UUID, label, 'auto_detect_root', 'auto_detect_esp'). 'auto' implies searching all valid filesystems."
+          },
+          "architecture": {
+            "type": "string",
+            "enum": ["x86", "x86_64", "arm", "aarch64", "riscv32", "riscv64", "powerpc", "mips", "any"],
+            "default": "any",
+            "description": "Target CPU architecture for this entry. 'any' implies compatible with host."
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "plugins": {
+      "type": "array",
+      "description": "List of plugin files to load (e.g., filesystem drivers like 'lblfs_ext4.lblfs').",
+      "items": {
+        "type": "string",
+        "pattern": "^.+\\.lblfs$"
+      }
+    },
+    "advanced": {
+      "type": "object",
+      "description": "Advanced LBL settings.",
+      "properties": {
+        "debug_shell": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable access to a debug/recovery shell."
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["none", "error", "warn", "info", "debug", "trace"],
+          "default": "info",
+          "description": "Verbosity level for LBL logs."
+        },
+        "enable_network_boot": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable searching for and displaying network boot (PXE) options."
+        },
+        "default_boot_entry_id": {
+          "type": "string",
+          "description": "ID of the entry to boot by default after timeout. If not set, the first entry by order is used."
+        },
+        "resolution": {
+          "type": "string",
+          "pattern": "^(\\d+x\\d+|auto)$",
+          "default": "auto",
+          "description": "Preferred screen resolution (e.g., '1920x1080', 'auto' for native)."
+        },
+        "show_countdown": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show or hide the boot countdown timer."
+        },
+        "progress_bar_style": {
+          "type": "string",
+          "enum": ["classic", "modern", "minimal", "dots"],
+          "default": "modern",
+          "description": "Visual style for the progress bar during device probing."
+        },
+        "enable_mouse": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable mouse input support in the GUI."
+        },
+        "enable_touch": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable touch input support in the GUI (if hardware supports it)."
+        }
+      }
+    }
+  },
+  "required": ["entries"],
+  "additionalProperties": false
+}

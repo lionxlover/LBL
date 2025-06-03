@@ -1,0 +1,139 @@
+[package]
+name = "lionbootloader_core"
+version = "0.1.0"
+authors = ["Lionbootloader Development Team <dev@lionbootloader.org>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Core engine for Lionbootloader."
+# Consider adding repository, homepage if this crate were to be published separately
+# repository = "https://github.com/your-org/lionbootloader/tree/main/core"
+
+# We are building a no_std binary/staticlib that Stage1 will load.
+# The `main` function will be in `src/main.rs` and will be the entry point
+# called by Stage1.
+# If this were purely a library for Stage1 to link against, we might use:
+# [lib]
+# crate-type = ["staticlib"] # Or "cdylib" if dynamically linked, but static is more common for bootloaders
+# path = "src/lib.rs"
+
+[dependencies]
+# Core no_std utilities
+# `alloc` crate for dynamic memory allocation (Vec, Box, String etc.)
+# This requires a global allocator to be defined.
+alloc = { version = "0.0.0", package = "alloc_crate", optional = true } # Trick to refer to the core alloc
+# spin = "0.9.8" # For basic spinlocks, mutexes in no_std
+lazy_static = { version = "1.4.0", features = ["spin_no_std"] } # For static global variables
+
+# Logging facade
+log = "0.4.20"
+
+# JSON Parsing and Schema Validation
+# `serde` for serialization/deserialization.
+# `serde_json` for JSON. Ensure it can work in no_std (might need features or a fork).
+# For a bootloader, a simpler, no_std focused JSON parser might be better if `serde_json` is too heavy
+# or has std dependencies.
+# Examples: `json-nom`, `miniserde`, or a custom parser.
+# Let's assume we find a `no_std` compatible serde_json or use a lightweight alternative.
+serde = { version = "1.0.195", default-features = false, features = ["derive", "alloc"], optional = true }
+serde_json = { version = "1.0.111", default-features = false, features = ["alloc"], optional = true }
+# For schema validation, `jsonschema` typically requires `std`.
+# We might need a custom lightweight validator or a `no_std` version if available.
+# For now, let's assume schema validation logic will be custom or a very light lib.
+
+# Filesystem drivers - these would ideally be `no_std` and might be custom written or adapted.
+# For this example, let's assume we'll have placeholder modules.
+# If using existing crates, they MUST be `no_std` compatible.
+# fatfs = { version = "0.4.0", default-features = false, features = ["alloc"], optional = true } # Example for FAT
+
+# Async operations
+# `futures-util` can provide basic future types and combinators in `no_std`
+# We will need a custom, simple executor.
+futures-util = { version = "0.3.30", default-features = false, features = ["alloc"], optional = true }
+
+# For interacting with hardware (e.g., PCI, ACPI) - often requires unsafe code and direct memory access.
+# Crates like `x86_64`, `aarch64`, `riscv` can provide CPU-specific intrinsics/registers.
+# For generic hardware access, custom modules or very specific crates would be used.
+# `acpi` crate for ACPI table parsing (often `no_std` with `alloc`).
+# acpi = { version = "5.0.0", default-features = false, features = ["allocator_api", "alloc"], optional = true }
+
+# ELF parsing (for loading kernels)
+# `elf` crate or similar. `goblin` is powerful but might be heavier.
+# elf = { version = "0.7.0", default-features = false, optional = true }
+# or
+# xmas-elf = { version = "0.9.1", optional = true } # Often no_std compatible
+
+# PE parsing (for loading Windows kernels or UEFI apps)
+# `pelite` = { version = "0.11.0", default-features = false, features = ["alloc"], optional = true }
+
+# TPM 2.0 interaction
+# This is highly platform and hardware specific. A direct crate might not exist or
+# would be very low-level. Initially, this will be a stub/interface.
+# tpm-rs = {git = "https://github.com/rcore-os/tpm-rs" } # example, check compatibility
+
+# If GUI is tightly coupled and also no_std for a portion
+# nanovg_rs = { version = "0.5.0", default-features = false, optional = true } # Example for NanoVG bindings, check no_std
+
+# Platform-specific crates for boot services (if applicable after Stage1 provides some)
+# For UEFI, if the core itself runs as a UEFI app for a while:
+# uefi = { version = "0.26.0", features = ["alloc"], optional = true }
+# uefi-services = { version = "0.23.0", optional = true }
+
+# Optional: A global allocator if dynamic memory allocation is used.
+# wee_alloc = { version = "0.4.5", optional = true } # A small allocator
+# or a custom one.
+
+[features]
+default = [
+    "with_alloc", # Enable dynamic allocation by default
+    "fs_fat32",   # Enable FAT32 filesystem support by default
+    "fs_ext4",    # Enable ext4 filesystem support by default (stub for now)
+    "kernel_elf", # Enable ELF kernel loading
+    # "gui_support" # If GUI is compiled conditionally
+]
+
+# Enable dynamic memory allocation (Vec, String, Box, etc.)
+with_alloc = ["alloc", "serde/alloc", "serde_json/alloc", "futures-util/alloc"] # Add other deps that need alloc
+
+
+# Filesystem support (can be turned into individual features per FS type)
+fs_fat32 = ["dep:fatfs"] # Placeholder, fatfs needs to be added to [dependencies]
+fs_ext4 = [] # Placeholder for ext4
+fs_ntfs = [] # Placeholder for ntfs
+fs_btrfs = [] # Placeholder for btrfs
+
+# Kernel format support
+kernel_elf = ["dep:xmas-elf"] # Placeholder, xmas-elf needs to be added to [dependencies]
+kernel_pe = ["dep:pelite"] # Placeholder, pelite needs to be added to [dependencies]
+
+# GUI Support (if it's part of this crate and conditional)
+# gui_support = ["dep:nanovg_rs"]
+
+# Security features
+security_tpm = [] # Placeholder for TPM feature
+security_secure_boot = [] # Placeholder for Secure Boot chain verification
+
+# Build configuration for no_std
+# This effectively makes the crate `no_std` unless the `std` feature is explicitly enabled.
+# However, for a bootloader core, we almost always want it to be `no_std`.
+# The [profile] settings in the workspace Cargo.toml will handle optimization.
+
+# Example of how to make main.rs the entry point for a binary crate
+# [[bin]]
+# name = "lionbootloader_core_bin" # The executable name
+# path = "src/main.rs"
+# test = false
+# bench = false
+
+# If the core is primarily a library (e.g., a staticlib) that stage1 links WITH some C glue,
+# or stage1 loads it as a raw binary and jumps to a known symbol:
+[lib]
+name = "lionbootloader_core_lib" # Name of the library if compiled as such
+crate-type = ["staticlib", "rlib"] # staticlib for C linking, rlib for Rust linking
+# path = "src/lib.rs" # if main logic is in lib.rs
+
+# Profiles are inherited from workspace Cargo.toml
+# [profile.release]
+# panic = "abort"
+# lto = true
+# codegen-units = 1
+# opt-level = "z" # Optimize for size

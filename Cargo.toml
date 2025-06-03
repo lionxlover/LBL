@@ -1,0 +1,70 @@
+[workspace]
+resolver = "2" # Use the new feature resolver
+members = [
+    "core",
+    "gui",
+    # If we had other Rust crates like a plugin SDK, they'd be listed here.
+]
+
+# Default members to build/run if `cargo build` or `cargo run` is executed in the workspace root.
+# For a bootloader, this isn't directly runnable from the workspace root in the traditional sense.
+# This section might be omitted or used for workspace-wide tools if any.
+# default-members = ["core"] # Example, but `core` is a lib, not a binary for direct `cargo run`
+
+# Profile settings for all workspace members.
+# We want small binaries and good performance for a bootloader.
+
+[profile.dev]
+panic = "abort" # Abort on panic in development, similar to release
+
+[profile.release]
+panic = "abort"         # Abort on panic
+lto = true              # Link-Time Optimization for smaller/faster binaries
+codegen-units = 1       # Maximize optimizations (slower compile, but better for release)
+strip = true            # Strip symbols from the binary
+opt-level = "z"         # Optimize for size ("s" is also an option, "z" is more aggressive)
+
+# Optional: Configuration for dependencies
+# [patch.crates-io]
+# some-dependency = { path = "path/to/local/fork" }
+
+# Workspace-wide metadata (optional)
+[workspace.package]
+version = "0.1.0"
+authors = ["Lionbootloader Development Team "]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Lionbootloader: A modern, universal, and future-proof bootloader."
+repository = "https://github.com/Lionxlover/lionbootloader" # Replace with actual URL
+readme = "docs/README.md"
+
+[workspace.dependencies]
+# Common dependencies used by multiple crates in the workspace can be defined here
+# to ensure version consistency.
+# Example:
+# log = "0.4"
+# serde = { version = "1.0", features = ["derive"] }
+# serde_json = "1.0"
+
+# For no_std environments, we'd add core, alloc, etc. if needed by multiple crates
+# but typically these are specified per-crate.
+
+# UEFI support (if used directly in core/gui, or as a common utility)
+# uefi = { version = "0.20.0", features = ["alloc"] } # Example, version may vary
+# uefi-services = "0.17.0" # Example
+
+# For async operations, we might choose a runtime.
+# However, in a bootloader, a full async runtime like tokio or async-std might be too heavy.
+# We might need a custom executor or a minimal one.
+# futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
+
+# JSON Schema validation
+# jsonschema = "0.17" # Example
+
+# Note: For `no_std` crates, ensure dependencies are also `no_std` compatible.
+# The core engine will be `no_std` for a significant part of its early execution.
+# The GUI might eventually run in a more capable environment where `std` is available
+# or it might need to be `no_std` with a custom allocator and system interface.
+
+# For NanoVG, if used, bindings would go here or in the gui crate.
+# nanovg = { version = "0.8.0", features = ["bundled"] } # Example if using Rust bindings
